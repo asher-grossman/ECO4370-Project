@@ -6,6 +6,16 @@
       - Do tariffs on trade rivals have amplified or diminshed effects?
 
 ## Data Sources
+    - FRED Unemployment Data as 'series ID' & (Sector Name):
+        - 'LNU04032232' (Manufacturing)
+        - 'LNU04032231' (Construction)
+        - 'LNU04032237' (Information)
+        - 'LNU04032241' (Leisure & Hospitality)
+        - 'LNU04032230' (Mining)
+        - 'LNU04032238' (Financial Activities)
+    - USITC (Trump Admin):
+        - **** NEED TO BUILD Tariff SCHEDULE IN CSV (OR FIX HTS SCEDULE)
+    
     - LIST OUT ALL SOURCES AND LINKS WITH BRIEF BULLET FOR DESCRIPTION/LOCATION
 
 ## Repo Structure (remove Rproj?):  
