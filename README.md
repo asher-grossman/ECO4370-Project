@@ -1,17 +1,44 @@
-ECO 4370 Semester Project
+************ ECO 4370 Semester Project ************
 
-Topic: How do tariffs on trade rivals affect the U.S. job market?
+## Project Overview
+    - What is the net affect of the Trump Administration's 2025 Tariffs?
+    Follow-ups:
+      - Which industries seem to be affected most?
+      - Do tariffs on trade rivals have amplified or diminshed effects?
 
-Sources: 
-Yale research on estimated effects of tariffs from Aug 7, 2025
-https://budgetlab.yale.edu/research/state-us-tariffs-august-7-2025
+## Data Sources
+    - LIST OUT ALL SOURCES AND LINKS WITH BRIEF BULLET FOR DESCRIPTION/LOCATION
 
-Research paper on effect of Trump tariffs on employment / electoral
-https://www.nber.org/system/files/working_papers/w32082/w32082.pdf
+## Repo Structure:  
+    ECO4370-Project/
+    ├── README.md                     # Project overview and instructions
+    ├── .gitignore                    # Files to ignore
+    ├── tariff-impact-2025.Rproj      # RStudio Project file
+    ├── src/                          # R Files
+    │   ├── dataProcessor.R           # ETL: Fetch FRED data, clean, and merge
+    │   ├── didModel.R                # Difference-in-Differences Analysis
+    │   └── 2slsModel.R               # Instrumental Variables Analysis
+    ├── resources/                    # Data 
+    │   ├── raw/                      # Original datasets (immutable)
+    │   │   └── tariff_schedules.csv  # Gathered from Trump admin postings
+    │   └── processed/                # Cleaned data ready for use
+    │       └── industry_panel_clean.csv
+    └── output/                       # Files generated from 'src' files
+        ├── tables/                   # LaTeX/HTML regression tables
+        └── figures/                  # Plots (in PNG/PDF)
 
-U.S. trade office website with specific focus on POTUS tariff orders (includes other trade topics)
-https://ustr.gov/trade-topics/presidential-tariff-actions
+## Results / Findings
+    - PLACEHOLDER 
+     ** Add general results/conclusions abstract
+     ** State major drawbacks/violations
 
-U.S. International Trade Commission Tariff database
-https://dataweb.usitc.gov/tariff
+## Citations? 
+    - Maybe add this to Data Sources section or just after it
+    - INCLUDE REFERENCES FOR CODE/ML papers
 
+## Steps to replicate
+    - Write out logic process
+    - What order to run files/gather data
+    - Any major references that are required for exact replication
+    - INCLUDE SEED SETTINGS AND R VERSION / PACKAGES
+      - NOTE DATES FOR DATA SETS AND 2025 GOVERNMENT SHUTDOWN 
