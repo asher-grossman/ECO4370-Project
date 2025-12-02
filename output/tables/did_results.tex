@@ -1,0 +1,22 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Impact of 2025 Tariffs on Unemployment Rate},
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]},
+hline{2}={1-2}{solid, black, 0.05em},
+hline{4}={1-2}{solid, black, 0.05em},
+hline{1}={1-2}{solid, black, 0.1em},
+hline{6}={1-2}{solid, black, 0.1em},
+column{2}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& DiD (TWFE) \\
+tariff\_rate & \num{-0.030} \\
+& (\num{0.055}) \\
+Num.Obs. & \num{1134} \\
+R2 & \num{0.699} \\
+\end{talltblr}
+\end{table}
