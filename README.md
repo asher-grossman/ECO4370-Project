@@ -9,11 +9,11 @@
 ## Data Sources
     - LIST OUT ALL SOURCES AND LINKS WITH BRIEF BULLET FOR DESCRIPTION/LOCATION
 
-## Repo Structure:  
+## Repo Structure (remove Rproj?):  
     ECO4370-Project/
     ├── README.md                     # Project overview and instructions
     ├── .gitignore                    # Files to ignore
-    ├── tariff-impact-2025.Rproj      # RStudio Project file
+    ├── ECO4370-Project.Rproj         # RStudio Project file
     ├── src/                          # R Files
     │   ├── dataProcessor.R           # ETL: Fetch FRED data, clean, and merge
     │   ├── didModel.R                # Difference-in-Differences Analysis
