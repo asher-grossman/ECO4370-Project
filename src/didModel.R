@@ -44,6 +44,7 @@ modelsummary(
   output = "output/tables/did_results.tex" # tex was easiest, can be html or pdf if preferred
 )
 
+options("modelsummary_format_numeric_latex" = "plain") # Avoid scientific notation in LaTeX output
 # ==============================================================================
 # 4. Event Study (Testing Parallel Trends)
 # ==============================================================================
@@ -79,3 +80,4 @@ iplot(event_study,
 dev.off()
 
 print("DiD Analysis Complete. Results saved to output/.")
+
