@@ -48,6 +48,7 @@ fetch_series <- function(id, name) {
 }
 
 raw_fred_data <- map2_dfr(industry_map$series_id, industry_map$industry_name, fetch_series)
+write_csv(raw_fred_data, "resources/raw/industry_panel_raw.csv")
 
 # ==============================================================================
 # 3. Import/Construct Tariff Data (Simulating USITC DataWeb)
