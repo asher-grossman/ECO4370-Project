@@ -1,5 +1,4 @@
-************ ECO 4370 Semester Project ************
-
+# ECO 4370 Final Project
 ## Project Overview
     - What is the net affect of the Trump Administration's 2025 Tariffs?
     Follow-ups:
