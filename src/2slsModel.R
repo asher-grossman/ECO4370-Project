@@ -16,6 +16,8 @@ df <- read_csv("resources/processed/industry_panel_clean.csv")
 # Fixed Effects: Industry and Date included in both stages
 
 # fixest syntax for IV: y ~ controls | FEs | Endogenous ~ Instrument
+
+### FIX MISSPECIFICATION IN IV MODEL
 iv_model <- feols(unemployment_rate ~ 1 | industry + date | 
                   tariff_rate ~ lobbying_index,
                   data = df,
