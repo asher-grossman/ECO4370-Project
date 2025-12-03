@@ -1,0 +1,7 @@
+industry_name,naics_code,base_tariff_rate,trump_tariff_add_on,effective_date,notes
+Manufacturing,31-33,2.0,25.0,2025-02-01,Combined Sec 301 and Sec 232 increases
+Construction,23,1.5,15.0,2025-02-01,Input cost pass-through estimation
+Information,51,0.5,5.0,2025-02-01,Electronics assembly duties
+Leisure_Hospitality,72,0.0,0.0,2025-02-01,No direct import exposure
+Mining_Oil_Gas,21,1.0,10.0,2025-02-01,Rare earth export controls retaliation
+Financial_Activities,52,0.0,0.0,2025-02-01,Service sector exemption
