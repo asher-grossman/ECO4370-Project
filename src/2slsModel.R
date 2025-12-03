@@ -19,7 +19,7 @@ df <- read_csv("resources/processed/industry_panel_clean.csv")
 
 ### FIX MISSPECIFICATION IN IV MODEL
 iv_model <- feols(unemployment_rate ~ 1 | industry + date | 
-                  tariff_rate ~ lobbying_index,
+                    tariff_rate ~ lobbying_index:post_treatment,
                   data = df,
                   cluster = ~industry)
 
@@ -36,10 +36,10 @@ ols_model <- feols(unemployment_rate ~ tariff_rate | industry + date,
 # If OLS > IV, it suggests tariffs were targeted at struggling industries (upward bias).
 
 results_table <- modelsummary(
-  list("OLS" = ols_model, "2SLS (IV)" = iv_model),
-  stars = c('*' = .1, '**' = .05, '***' = .01),
+  list("OLS" = ols_model, "2SLS (Interaction IV)" = iv_model),
+  stars = TRUE,
   gof_map = c("nobs", "r.squared", "stat_f"), # stat_f checks first stage F-stat
-  title = "OLS vs 2SLS Estimates of Tariff Impact",
+  title = "Impact of Tariffs on Unemployment (IV Robustness)",
   output = "output/tables/iv_comparison.tex"
 )
 
