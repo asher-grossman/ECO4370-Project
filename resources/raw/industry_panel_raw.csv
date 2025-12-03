@@ -1,4 +1,4 @@
-date,industry,unemployment_rate
+date,industry_name,unemployment_rate
 2010-01-01,Manufacturing,13
 2010-02-01,Manufacturing,12.1
 2010-03-01,Manufacturing,12.6
