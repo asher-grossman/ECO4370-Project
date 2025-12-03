@@ -56,48 +56,45 @@ write_csv(raw_fred_data, "resources/raw/industry_panel_raw.csv")
 # ALT OPTION: True scenario analysis -> load "resources/raw/tariff_schedules.csv".
 # Instead, we make a dataframe based on the 2025 Tariff Policy (Trump Tariffs for context)
 
-print("Constructing Tariff Exposure Panel...")
+print("Importing Tariff Schedule from CSV...")
 
-tariff_panel <- raw_fred_data %>%
-  select(date, industry) %>%
-  distinct() %>%
-  mutate(
-    year = year(date),
-    month = month(date),
-    # The Post-Treatment dummy: Tariffs effective Feb 2025
-    post_treatment = if_else(date >= as.Date("2025-02-01"), 1, 0),
-    
-    # Assign Tariff Rates (this is the SHOCK)
-    # Baseline (2010-2024, pre-Trump Tariffs) vs Treatment (2025+,Post Trump Tariffs)
-    tariff_rate = case_when(
-      # We think Steel/Aluminum tariffs heavily impact Manufacturing & Construction
-      industry == "Manufacturing" & post_treatment == 1 ~ 25.0, # 25% Section 232/301 mix
-      industry == "Construction"  & post_treatment == 1 ~ 15.0, # Input cost pass-through
-      industry == "Information"   & post_treatment == 1 ~ 5.0,  # Electronics tariffs
-      industry == "Leisure_Hospitality" & post_treatment == 1 ~ 0.0, # Minimal direct exposure
-      TRUE ~ 2.0 # Baseline historical average
-    ),
-    
-    # Construct Instrument for 2SLS: "Historical Lobbying Intensity"
-    # Our logic: Industries that lobbied more in 2015-2020 (First Trump term) got higher protection in 2025.
-    # These are correlated with tariff_rate but exogenous to 2025 monthly unemployment shocks.
-    lobbying_index = case_when(
-      industry == "Manufacturing" ~ 9.5,
-      industry == "Construction" ~ 6.0,
-      industry == "Mining_Oil_Gas" ~ 8.0,
-      industry == "Information" ~ 7.5,
-      industry == "Financial_Activities" ~ 5.0,
-      TRUE ~ 2.0
-    )
-  )
+tariff_schedule <- read_csv("resources/raw/trump_tariff_schedule_2025.csv",
+                            show_col_types = FALSE) %>%
+mutate(effective_date = as.Date(effective_date))
 
-# ==============================================================================
-# 4. Merge and Export
-# ==============================================================================
+# Join policy data to economic data
+# if the date is after 'effective date', apply Trump's tariff
+# if !, use base rate
 
 final_df <- raw_fred_data %>%
-  left_join(tariff_panel, by = c("date", "industry")) %>%
-  drop_na() # Remove rows where no data reported
+left_join(tariff_schedule, by = "industry_name") %>%
+mutate(
+  post_treatment = if_else(date >= effective_date, 1, 0),
+
+  # dynamic tariff rate
+  tariff_rate = if_else(post_treatment == 1,
+                        base_tariff_rate + trump_tariff_add_on,
+                        base_tariff_rate),
+
+  # lobbying instrument
+  # Alternate Option: create csv with these values (too in depth for current project time)
+
+  lobbying_index = case_when(
+    industry_name == "Manufacturing" ~ 9.5,
+    industry == "Construction" ~ 6.0,
+    industry == "Mining_Oil_Gas" ~ 8.0,
+    industry == "Information" ~ 7.5,
+    industry == "Financial_Activities" ~ 5.0,
+    TRUE ~ 2.0
+  ) 
+) %>%
+select(date, industry = industry_name, unemployment_rate,
+       tariff_rate, post_treatment, lobbying_index) %>%
+drop_na()
+
+# ==============================================================================
+# 4. Export
+# ==============================================================================
 
 # Save to resources/processed directory to later be implemented with our models
 write_csv(final_df, "resources/processed/industry_panel_clean.csv")
