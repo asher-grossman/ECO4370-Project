@@ -1,51 +1,75 @@
+
 # ==============================================================================
 # 1. Setup
 # ==============================================================================
 library(tidyverse)
 library(fixest)
 library(modelsummary)
+library(ggplot2)
 
-# Load data that has been cleaned by src/dataProcess.R
 df <- read_csv("resources/processed/industry_panel_clean.csv")
 
 # ==============================================================================
-# 2. Instrumental Variable Estimation (2SLS)
+# 2. Instrumental Variable Estimation
 # ==============================================================================
-# Structural equation: Unemployment ~ Tariff Rate
-# First Stage: Tariff Rate ~ Lobbying Index (Instrument)
-# Fixed Effects: Industry and Date included in both stages
+# OLS (Biased)
+ols_model <- feols(unemployment_rate ~ tariff_rate | industry + date, 
+                   data = df, 
+                   vcov = "HC1")
 
-# fixest syntax for IV: y ~ controls | FEs | Endogenous ~ Instrument
-
-### FIX MISSPECIFICATION IN IV MODEL
+# 2SLS (Corrected)
+# Instrument: Lobbying Index * Post_Treatment
 iv_model <- feols(unemployment_rate ~ 1 | industry + date | 
                     tariff_rate ~ lobbying_index:post_treatment,
                   data = df,
-                  cluster = ~industry)
+                  vcov = "HC1")
 
 # ==============================================================================
-# 3. Diagnostics and Comparison
+# 3. Visualization (Coefficient Comparison)
 # ==============================================================================
-# Run OLS again for comparison
-# Running a basic OLS can demonstrate how endogeneity affects models (bias)
-ols_model <- feols(unemployment_rate ~ tariff_rate | industry + date, 
-                   data = df, cluster = ~industry)
+# Step 3a: Manually extract estimates
+res_ols <- broom::tidy(ols_model, conf.int = TRUE) %>% 
+  filter(term == "tariff_rate") %>% 
+  mutate(model = "OLS (Biased)")
 
-# BASIC GUIDELINES FOR OLS vs. 2SLS COMPARISON
-# If OLS < IV, it suggests tariffs were targeted at resilient industries (downward bias).
-# If OLS > IV, it suggests tariffs were targeted at struggling industries (upward bias).
+res_iv  <- broom::tidy(iv_model, conf.int = TRUE) %>% 
+  filter(term == "fit_tariff_rate") %>% # 2SLS calls the predicted value 'fit_...'
+  mutate(model = "2SLS (Corrected)", term = "tariff_rate")
 
-results_table <- modelsummary(
-  list("OLS" = ols_model, "2SLS (Interaction IV)" = iv_model),
+plot_data <- bind_rows(res_ols, res_iv)
+
+# Step 3b: Plot using standard ggplot
+p_compare <- ggplot(plot_data, aes(x = model, y = estimate, color = model)) +
+  geom_hline(yintercept = 0, linetype = "solid", color = "black") +
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high), size = 1.2) +
+  labs(
+    title = "Bias Correction: OLS vs. 2SLS",
+    subtitle = "Comparing the estimated impact of tariffs on unemployment",
+    x = "Model Type",
+    y = "Coefficient Estimate (95% CI)"
+  ) +
+  theme_minimal() +
+  guides(color = "none") # Remove legend since x-axis labels are sufficient
+
+# Save Plot
+ggsave("output/figures/ols_vs_2sls_compare.png", plot = p_compare, width = 8, height = 5)
+print(p_compare)
+
+# ==============================================================================
+# 4. Tables for Screenshot
+# ==============================================================================
+results_table_view <- modelsummary(
+  list("OLS" = ols_model, "2SLS" = iv_model),
   stars = TRUE,
-  gof_map = c("nobs", "r.squared", "stat_f"), # stat_f checks first stage F-stat
-  title = "Impact of Tariffs on Unemployment (IV Robustness)",
-  output = "output/tables/iv_comparison.tex"
+  gof_map = c("nobs", "r.squared", "stat_f"),
+  coef_map = c("tariff_rate" = "Tariff Rate", 
+               "fit_tariff_rate" = "Tariff Rate"),
+  output = "data.frame"
 )
 
-# Print first stage diagnostics (Weak Instrument Test)
-print("First Stage Diagnostics:")
-summary(iv_model, stage = 1)
+# First Stage Diagnostics
+first_stage <- summary(iv_model, stage = 1)
+first_stage_table <- broom::tidy(first_stage) 
 
-# end of model statement
-print("2SLS Analysis Complete. Results saved to output/.")
+View(results_table_view)
+View(first_stage_table)
