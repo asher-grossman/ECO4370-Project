@@ -1,82 +1,84 @@
-# ==============================================================================
-# 1. Setup
-# ==============================================================================
-library(tidyverse)
-library(fixest)       # Online posts described as best for high-dimensional fixed effects
-library(modelsummary) # Used for professional replicability -> high quality tables
-library(ggplot2)
 
-# Create output directories
-# FIX DIRECTORY PATHS
+
+# ==============================================================================
+# Setup
+library(tidyverse)
+library(fixest)       
+library(modelsummary) 
+library(ggplot2)
+library(lubridate)
+
 dir.create("output/tables", recursive = TRUE, showWarnings = FALSE)
 dir.create("output/figures", recursive = TRUE, showWarnings = FALSE)
 
-# use CLEAN (PROCESSED) data
-# aka data that has been ran through dataProcess 
 df <- read_csv("resources/processed/industry_panel_clean.csv")
 
 # ==============================================================================
-# 2. Descriptive Checks
-# ==============================================================================
-# Here, we check the treatment variation
-print("Summary of Tariff Rates by Post-Treatment Status:")
-table(df$post_treatment, df$tariff_rate)
+# Generalized DiD Estimation (Two-Way Fixed Effects)
 
-# ==============================================================================
-# 3. Generalized DiD Estimation (Two-Way Fixed Effects)
-# ==============================================================================
-# Model (in layman's terms): Unemployment ~ Tariff Exposure | Industry FE + Date FE
-# We use tariff_rate as a continuous treatment variable
-
+# Model: Unemployment ~ Tariff Exposure | Industry FE + Date FE
 did_model <- feols(unemployment_rate ~ tariff_rate | 
-                   industry + date, 
+                     industry + date, 
                    data = df, 
-                   cluster = ~industry) # Cluster SEs by industry
+                   cluster = ~industry) 
 
-print(summary(did_model))
-
-# Export Regression Table
-modelsummary(
-  list("DiD (TWFE)" = did_model),
-  stars = TRUE,
-  gof_map = c("nobs", "r.squared", "within.r.squared"),
-  title = "Impact of 2025 Tariffs on Unemployment Rate",
-  output = "output/tables/did_results.tex" # tex was easiest, can be html or pdf if preferred
-)
-
-options("modelsummary_format_numeric_latex" = "plain") # Avoid scientific notation in LaTeX output
 # ==============================================================================
-# 4. Event Study (Testing Parallel Trends)
-# ==============================================================================
-# We define "time_to_treatment" relative to Feb 2025.
+# Event Study (Testing Parallel Trends)
+
+# Create robust numerical time variable
+# Feb 2025 = 0, Jan 2025 = -1, Mar 2025 = 1
 df <- df %>%
   mutate(
-    # Create a numeric date for ordering
-    date_num = as.numeric(date),
-    # Time relative to Feb 1, 2025 (in months)
-    time_to_treat = interval(as.Date("2025-02-01"), date) / months(1)
+    date = as.Date(date),
+    time_to_treat = (year(date) - 2025) * 12 + (month(date) - 2)
   )
 
-# Run the event -> We observe the interactions between tariff rate and time dummies
-# Reference period: -1 (January 2025, one month before tariffs)
-# Delay ^^ because tariffs take time to affect (observed effect is not immediate)
+# Run Model with Robust Standard Errors (HC1)
 event_study <- feols(unemployment_rate ~ i(time_to_treat, tariff_rate, ref = -1) | 
-                     industry + date,
+                       industry + date,
                      data = df,
-                     cluster = ~industry)
+                     vcov = "HC1") 
+
+# Manually Extract Data for Plotting (The "Unbreakable" Method)
+# We pull coefficients and confidence intervals directly into a dataframe
+es_results <- broom::tidy(event_study, conf.int = TRUE) %>%
+  filter(str_detect(term, "time_to_treat")) %>%
+  mutate(
+    # Extract the numeric time from the term name (e.g., "time_to_treat::-2:tariff_rate")
+    time = as.numeric(str_extract(term, "-?\\d+"))
+  )
+
+# Add the reference point (t=-1) manually so it shows up on the graph
+ref_point <- tibble(term = "ref", estimate = 0, std.error = 0, 
+                    conf.low = 0, conf.high = 0, time = -1)
+plot_data <- bind_rows(es_results, ref_point)
 
 # Plot
-p <- iplot(event_study, 
-           main = "Event Study: Effect of Tariff Exposure on Unemployment",
-           xlab = "Months Relative to Feb 2025",
-           ylab = "Coefficient Estimate (95% CI)")
+p_event <- ggplot(plot_data, aes(x = time, y = estimate)) +
+  geom_vline(xintercept = -0.5, linetype = "dashed", color = "red") +
+  geom_hline(yintercept = 0, color = "black") +
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high), color = "blue") +
+  labs(
+    title = "Event Study: Tariff Impact Timing",
+    subtitle = "Check for Pre-Trends (Left of Red Line) vs. Treatment Effect (Right)",
+    x = "Months Relative to Feb 2025",
+    y = "Effect on Unemployment Rate (95% CI)"
+  ) +
+  theme_minimal()
 
-# Save plot as image (.png, .jpeg. whatever people prefer)
-png("output/figures/event_study_plot.png", width = 800, height = 600)
-iplot(event_study, 
-      main = "Event Study: Effect of Tariff Exposure on Unemployment",
-      xlab = "Months Relative to Feb 2025",
-      ylab = "Coefficient Estimate")
-dev.off()
+# Save Plot
+ggsave("output/figures/did_event_study.png", plot = p_event, width = 8, height = 6)
+print(p_event)
 
-print("DiD Analysis Complete. Results saved to output/.")
+# ==============================================================================
+# 4. Tables for Screenshot
+
+did_table_view <- modelsummary(
+  list("DiD Baseline" = did_model),
+  stars = TRUE,
+  gof_map = c("nobs", "r.squared", "within.r.squared"),
+  coef_map = c("tariff_rate" = "Tariff Exposure"),
+  output = "data.frame" 
+)
+
+View(did_table_view)
