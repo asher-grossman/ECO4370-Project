@@ -14,15 +14,12 @@
         - 'LNU04032230' (Mining)
         - 'LNU04032238' (Financial Activities)
     - USITC (Trump Admin):
-        - **** NEED TO BUILD Tariff SCHEDULE IN CSV (OR FIX HTS SCEDULE)
-    
-    - LIST OUT ALL SOURCES AND LINKS WITH BRIEF BULLET FOR DESCRIPTION/LOCATION
-
-## Repo Structure (remove Rproj?):  
+        - Self-built CSV of general tariff rates
+        - ^ Constructed based on goverment published articles/briefs
+## Repo Structure:  
     ECO4370-Project/
     ├── README.md                     # Project overview and instructions
     ├── .gitignore                    # Files to ignore
-    ├── ECO4370-Project.Rproj         # RStudio Project file
     ├── src/                          # R Files
     │   ├── dataProcessor.R           # ETL: Fetch FRED data, clean, and merge
     │   ├── didModel.R                # Difference-in-Differences Analysis
@@ -35,19 +32,3 @@
     └── output/                       # Files generated from 'src' files
         ├── tables/                   # LaTeX/HTML regression tables
         └── figures/                  # Plots (in PNG/PDF)
-
-## Results / Findings
-    - PLACEHOLDER 
-     ** Add general results/conclusions abstract
-     ** State major drawbacks/violations
-
-## Citations? 
-    - Maybe add this to Data Sources section or just after it
-    - INCLUDE REFERENCES FOR CODE/ML papers
-
-## Steps to replicate
-    - Write out logic process
-    - What order to run files/gather data
-    - Any major references that are required for exact replication
-    - INCLUDE SEED SETTINGS AND R VERSION / PACKAGES
-      - NOTE DATES FOR DATA SETS AND 2025 GOVERNMENT SHUTDOWN 
